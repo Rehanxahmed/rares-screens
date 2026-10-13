@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<script>window.GALLERY_FIREBASE = {"projectId": "bible-app-731cf", "databaseURL": "https://bible-app-731cf-default-rtdb.asia-southeast1.firebasedatabase.app", "root": "rares"};</script>
+<title>Rares Screens</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+  /* One deliberate look: a dark review board so the app's paper screens read
+     as the subject. */
+  :root {
+    color-scheme: dark;
+    --board: #121315;
+    --surface: #1b1c20;
+    --raise: #25272d;
+    --pop: #1f2126;
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #eef0f5;
+    --muted: #9aa1ad;
+    --faint: #6b717c;
+    --blue: #0d99ff;          /* comments, as in Figma */
+    --blue-text: #5cb8ff;
+    --paper: #eef0f7;
+    --ink: #1e2a3c;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: "Hind", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--board); color: var(--text); }
+  body { font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgba(13, 153, 255, 0.35); }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 8px; }
+  [hidden] { display: none !important; }
+  svg { display: block; flex: none; }
+  img { max-width: 100%; }
+
+  /* Top bar. Wide: title | filters | actions. Narrower: filters get their own row. */
+  header {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--board);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 14px 24px;
+    max-width: 1680px; margin: 0 auto; padding: 18px 32px;
+  }
+  .title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .title h1 { margin: 0; font: 600 22px/1.2 var(--serif); letter-spacing: -0.02em; text-wrap: balance; }
+  .title p { margin: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #meta { color: var(--muted); }
+  .hint { display: none; color: var(--blue-text); }
+  .commenting .hint { display: block; }
+  .commenting #meta { display: none; }
+
+  .filters {
+    display: flex; padding: 4px; min-width: 0; max-width: 100%;
+    background: var(--surface); border-radius: 999px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filters button {
+    flex: none; border: 0; background: none; color: var(--muted);
+    padding: 7px 14px; border-radius: 999px; font-weight: 500; font-size: 14px;
+    transition: color 160ms ease-out, background 160ms ease-out;
+  }
+  .filters button[aria-pressed="true"] { background: var(--raise); color: var(--text); }
+  .filters button:hover { color: var(--text); }
+
+  /* Comment / Stop commenting */
+  .actions { display: flex; align-items: center; flex: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 0; border-radius: 999px; padding: 9px 12px 9px 16px; font-weight: 600; white-space: nowrap;
+    transition: transform 160ms ease-out, background 160ms ease-out;
+  }
+  .pill:active { transform: scale(0.97); }
+  .pill svg { width: 18px; height: 18px; }
+  .start { background: var(--paper); color: var(--ink); }
+  .stop { background: var(--blue); color: #fff; }
+  .stop:hover { background: #2aa5ff; }
+  .ro { background: var(--raise); color: var(--muted); padding: 9px 16px; }
+  kbd {
+    font: 600 11px/1 var(--sans); padding: 5px 6px 3px; min-width: 20px; text-align: center;
+    border-radius: 6px; background: rgba(30, 42, 60, 0.1);
+  }
+  .stop kbd { background: rgba(255, 255, 255, 0.2); }
+  body:not(.commenting) .stop, .commenting .start, .readonly .start, .readonly .stop { display: none; }
+
+  /* Board */
+  main { max-width: 1680px; margin: 0 auto; padding: 8px 32px 96px; }
+  section { margin-top: 44px; }
+  section h2 {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 0 0 20px; font: 600 26px/1.2 var(--serif); letter-spacing: -0.02em;
+  }
+  section h2 span { font: 500 14px/1 var(--sans); color: var(--faint); letter-spacing: 0; }
+  .grid {
+    display: grid; gap: 36px 28px;
+    grid-template-columns: repeat(auto-fill, minmax(188px, 1fr));
+  }
+  .tile { min-width: 0; }
+
+  /* A screen: the screenshot plus its comment pins, which move with it. */
+  .frame {
+    position: relative; display: block; width: 100%; max-width: 100%; aspect-ratio: 402 / 874;
+    border-radius: 13.7% / 6.3%;
+    cursor: zoom-in;
+    transition: transform 200ms var(--ease-out);
+  }
+  .frame:hover, .frame:focus-within { z-index: 2; }
+  .shot {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    border-radius: inherit; background: var(--surface);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 14px 34px rgba(0, 0, 0, 0.42);
+  }
+  .tile .frame:hover { transform: translateY(-3px); }
+  .tile .frame:active { transform: scale(0.985); }
+  /* Commenting: screens hold still and the cursor becomes a comment bubble,
+     its tail on the exact spot a click will pin. */
+  .commenting .frame, .commenting .tile .frame:hover, .commenting .tile .frame:active {
+    transform: none;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M2 26V15A11 11 0 0 1 13 4a11 11 0 0 1 11 11 11 11 0 0 1-11 11z' fill='%23fff' stroke='%23121315' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M13 10.5v9M8.5 15h9' stroke='%230d99ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 2 26, crosshair;
+  }
+  .pins { position: absolute; inset: 0; pointer-events: none; }
+
+  .label { display: flex; gap: 10px; align-items: baseline; margin-top: 14px; }
+  .label b { font-weight: 600; color: var(--faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .label span { font-weight: 500; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .count {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 4px; align-self: center;
+    font: 600 13px/1 var(--sans); font-style: normal; color: var(--blue-text);
+  }
+  .count svg { width: 15px; height: 15px; }
+  .route { display: block; margin-top: 2px; color: var(--faint); font: 12px/1.4 var(--mono); }
+
+  /* Pins: Figma's bubble, the square corner marks the spot. The inner dot
+     takes the commenter's color. */
+  .pin {
+    --pin: 24px;
+    position: absolute; left: calc(var(--x) * 100%); top: calc(var(--y) * 100%);
+    width: var(--pin); height: var(--pin); margin: 0; padding: 2px; border: 0;
+    background: #fff; border-radius: 50% 50% 50% 0;
+    transform: translateY(-100%); transform-origin: 0 100%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 6px 16px rgba(0, 0, 0, 0.22);
+    pointer-events: auto; cursor: pointer;
+  }
+  .pin .num {
+    display: grid; place-items: center; width: 100%; height: 100%; padding-top: 1px;
+    border-radius: 50%; background: var(--c, var(--blue)); color: #fff;
+    font: 600 11px/1 var(--sans); font-variant-numeric: tabular-nums;
+  }
+  .frame.big .pin { --pin: 30px; }
+  .frame.big .pin .num { font-size: 13px; }
+  .pin.active { box-shadow: 0 0 0 2px var(--c, var(--blue)), 0 6px 16px rgba(0, 0, 0, 0.3); z-index: 3; }
+  .pin.new { animation: pin-in 280ms var(--ease-out); }
+  .pin.draft { pointer-events: none; }
+  .pin.draft::after {
+    content: ""; position: absolute; inset: -5px; border-radius: 50% 50% 50% 0;
+    border: 2px solid var(--blue); opacity: 0; animation: ring 1.6s ease-out infinite;
+  }
+  @keyframes pin-in { from { opacity: 0; transform: translateY(-100%) scale(0.5); } }
+  @keyframes ring { from { opacity: 0.6; transform: scale(0.9); } to { opacity: 0; transform: scale(1.35); } }
+
+  /* Hovering a pin previews its comment. */
+  .peek {
+    display: none; position: absolute; left: calc(100% + 8px); bottom: 0; z-index: 4;
+    width: max-content; max-width: 240px; padding: 8px 12px; border-radius: 10px;
+    background: var(--pop); border: 1px solid var(--line); color: var(--text); text-align: left;
+    font: 400 13px/1.4 var(--sans);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+  .peek b { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .peek .t { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .peek small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+  .pin.flip .peek { left: auto; right: calc(100% + 8px); }
+  .pin:hover .peek { display: block; animation: peek-in 140ms var(--ease-out); }
+  .pin.active .peek { display: none; }
+  @keyframes peek-in { from { opacity: 0; transform: translateY(3px); } }
+
+  /* Comment popover: a new comment, or a thread with replies and resolve. */
+  .pop {
+    position: fixed; z-index: 20; width: 320px;
+    background: var(--pop); color: var(--text);
+    border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+    animation: pop-in 160ms var(--ease-out);
+  }
+  .pop.draft { width: 288px; }
+  @keyframes pop-in { from { opacity: 0; transform: scale(0.97); } }
+  .pop-head { display: flex; align-items: center; gap: 2px; padding: 8px 8px 2px 14px; }
+  .pop-title { flex: 1; min-width: 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pop-title b { color: var(--text); font-weight: 600; margin-right: 8px; }
+  .icon {
+    display: grid; place-items: center; width: 32px; height: 32px; flex: none;
+    border: 0; border-radius: 8px; background: none; color: var(--muted);
+    transition: background 140ms ease-out, color 140ms ease-out;
+  }
+  .icon svg { width: 20px; height: 20px; }
+  .icon:hover { background: var(--raise); color: var(--text); }
+  .icon.resolve:hover { background: var(--blue); color: #fff; }
+  .msgs { max-height: 300px; overflow-y: auto; padding: 0 14px; }
+  .msg { padding: 8px 0 10px; }
+  .msg + .msg { border-top: 1px solid var(--line); }
+  .msg-head { display: flex; align-items: center; gap: 8px; min-width: 0; margin-bottom: 3px; }
+  .msg-head .av { width: 20px; height: 20px; border-radius: 50%; flex: none; object-fit: cover; background: var(--raise); }
+  .msg-head b { min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .msg-head time { flex: none; font-size: 12px; color: var(--faint); }
+  .msg p { margin: 0; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .composer { display: flex; align-items: flex-end; gap: 8px; padding: 8px 8px 8px 14px; }
+  .thread .composer { border-top: 1px solid var(--line); }
+  .composer textarea {
+    flex: 1; min-width: 0; height: 30px; max-height: 160px; padding: 5px 0; margin: 0;
+    resize: none; border: 0; outline: 0; background: none; color: var(--text);
+    font: 14px/20px var(--sans);
+  }
+  .composer textarea::placeholder { color: var(--faint); }
+  .name {
+    display: block; width: calc(100% - 28px); margin: 12px 14px 0; padding: 8px 10px;
+    border: 0; border-radius: 8px; outline: 0; background: var(--raise); color: var(--text);
+    font: 14px/20px var(--sans);
+  }
+  .name::placeholder { color: var(--faint); }
+  .name:focus-visible { box-shadow: 0 0 0 2px var(--blue); }
+  .msg-head .init { display: grid; place-items: center; color: #fff; font: 600 11px/1 var(--sans); }
+  .link { border: 0; background: none; padding: 0; color: var(--blue-text); font: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .send {
+    display: grid; place-items: center; width: 30px; height: 30px; flex: none;
+    border: 0; border-radius: 50%; background: var(--blue); color: #fff;
+    transition: background 140ms ease-out, transform 140ms ease-out;
+  }
+  .send:active { transform: scale(0.94); }
+  .send:disabled { background: var(--raise); color: var(--faint); cursor: default; transform: none; }
+  .send svg { width: 18px; height: 18px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+    transform: translateX(-50%); max-width: calc(100vw - 32px);
+    display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 18px;
+    border-radius: 999px; background: #2a2c32; color: var(--text); font-size: 14px;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+    animation: toast-in 200ms var(--ease-out);
+  }
+  .toast button { flex: none; border: 0; background: none; color: var(--blue-text); font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+  .toast button:hover { background: var(--raise); }
+  .toast.plain { padding-right: 18px; border-radius: 18px; }
+  @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+  /* Empty */
+  .empty { text-align: center; padding: 18vh 0; color: var(--muted); }
+  .empty h2 { font: 600 28px/1.2 var(--serif); color: var(--text); margin: 0 0 8px; }
+  .empty p { margin: 0; }
+
+  /* Lightbox */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 10;
+    display: grid; grid-template-columns: 96px 1fr 96px; align-items: center;
+    background: rgba(8, 8, 10, 0.94);
+    opacity: 0; pointer-events: none; transition: opacity 180ms ease-out;
+  }
+  .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox figure { margin: 0; justify-self: center; display: flex; flex-direction: column; align-items: center; gap: 16px; min-height: 0; }
+  .frame.big { height: min(84vh, 1100px); width: auto; cursor: default; }
+  .frame.big .shot { box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+  .lightbox figcaption { display: flex; gap: 12px; align-items: baseline; color: var(--muted); font-size: 14px; }
+  .lightbox figcaption strong { color: var(--text); font-weight: 600; font-size: 16px; }
+  .nav {
+    justify-self: center; width: 52px; height: 52px; border-radius: 50%;
+    border: 0; background: var(--raise); color: var(--text);
+    display: grid; place-items: center;
+    transition: transform 160ms ease-out, background 160ms ease-out;
+  }
+  .nav:hover { background: #30333a; }
+  .nav:active { transform: scale(0.94); }
+  .nav svg { width: 20px; height: 20px; }
+  .lb-top { position: absolute; top: calc(20px + env(safe-area-inset-top, 0px)); right: 24px; display: flex; align-items: center; gap: 10px; }
+
+  @media (max-width: 1179px) {
+    .bar { grid-template-columns: minmax(0, 1fr) auto; }
+    .filters { grid-row: 2; grid-column: 1 / -1; justify-self: start; }
+  }
+  @media (max-width: 760px) {
+    header { position: static; }
+    .bar { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 12px; }
+    .actions { justify-self: start; }
+    .filters { grid-row: auto; }
+    main { padding: 0 16px 64px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 28px 16px; }
+    .lightbox { grid-template-columns: 56px 1fr 56px; }
+    .frame.big { height: min(72vh, 900px); }
+    .nav { width: 44px; height: 44px; }
+    .lb-top { top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; }
+    kbd { display: none; }
+    .pop { width: min(320px, calc(100vw - 24px)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+
+<header id="top">
+  <div class="bar">
+    <div class="title">
+      <h1>Rares screens</h1>
+      <p id="meta">Loading…</p>
+      <p class="hint" id="hint">Click anywhere on a screen to leave a comment</p>
+    </div>
+    <nav class="filters" id="filters" aria-label="Filter screens"></nav>
+    <div class="actions">
+      <button class="pill start" data-mode="on" title="Comment (C)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 16V9.5A6.5 6.5 0 0 1 9.5 3 6.5 6.5 0 0 1 16 9.5 6.5 6.5 0 0 1 9.5 16z"/></svg>Comment<kbd>C</kbd></button>
+      <button class="pill stop" data-mode="off" title="Stop commenting (Esc)">Stop commenting<kbd>Esc</kbd></button>
+      <button class="pill ro" id="roNote" hidden>View only</button>
+    </div>
+  </div>
+</header>
+
+<main id="board"></main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot" inert>
+  <button class="nav" id="prev" aria-label="Previous screen">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4 6.5 10l6 6"/></svg>
+  </button>
+  <figure>
+    <div class="frame big" id="bigFrame" data-route="" tabindex="0" role="button" aria-label="Screen">
+      <img class="shot" id="big" alt="">
+      <div class="pins"></div>
+    </div>
+    <figcaption><strong id="bigTitle"></strong><span id="bigMeta"></span></figcaption>
+  </figure>
+  <button class="nav" id="next" aria-label="Next screen">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4 6 6-6 6"/></svg>
+  </button>
+  <div class="lb-top">
+    <button class="pill start" data-mode="on" title="Comment (C)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 16V9.5A6.5 6.5 0 0 1 9.5 3 6.5 6.5 0 0 1 16 9.5 6.5 6.5 0 0 1 9.5 16z"/></svg>Comment<kbd>C</kbd></button>
+    <button class="pill stop" data-mode="off" title="Stop commenting (Esc)">Stop commenting<kbd>Esc</kbd></button>
+    <button class="nav" id="close" aria-label="Close">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="pop" id="pop" role="dialog" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+// Screens come from shots/manifest.json: real screenshots of the app.
+// Comments live in one of three places, whichever this copy of the page has:
+// on the public site, a Firebase Realtime Database (window.GALLERY_FIREBASE,
+// added by build_live.py); published on claude.ai, the page's shared
+// database; run locally through server.py, comments.json. The first two
+// update live for everyone.
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+const clamp01 = (n) => Math.min(1, Math.max(0, Number(n) || 0));
+const safeColor = (c) => (/^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([\d\s.,%]+\))$/i.test(String(c || "")) ? c : "");
+const ICON = {
+  bubble: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 16V9.5A6.5 6.5 0 0 1 9.5 3 6.5 6.5 0 0 1 16 9.5 6.5 6.5 0 0 1 9.5 16z"/></svg>`,
+  check: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.25"/><path d="m6.9 10.2 2.1 2.1 4.1-4.4"/></svg>`,
+  close: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg>`,
+  send: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15.5v-11M5.5 9 10 4.5 14.5 9"/></svg>`,
+};
+const VIEW_ONLY = "You can read comments here. To add them, ask the owner to share this page with you as an Editor.";
+const FIREBASE_SDK = "https://www.gstatic.com/firebasejs/12.3.0/";
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+// Stable colors for commenters known only by the name they typed.
+const NAME_COLORS = ["#0d99ff", "#f24e1e", "#14ae5c", "#9747ff", "#ff7a00", "#e5387a", "#00a5a8", "#c7a200"];
+const nameColor = (name) => NAME_COLORS[[...name.toLowerCase()].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % NAME_COLORS.length];
+
+let manifest = null;
+let shots = {};          // route → screen (with its group)
+let flat = [];           // screens on the board now, in lightbox order
+let filter = storeGet("gallery.filter") || "All";
+let openIndex = -1;
+let comments = [];       // { id, number, route, title, x, y, resolvedAt, author, messages: [{ text, at, author }] }
+let commenting = false;
+let pop = null;          // { kind: "draft", route, x, y, frame } or { kind: "thread", id }
+let justAdded = null;
+
+function storeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+// ---------- Where comments are kept
+
+const backend = { live: false, db: null, fb: null, user: null, me: null, canWrite: true, writeKnown: false, needsName: false };
+const live = { threads: [], replies: [] };
+const people = {};       // author id → { name, avatarUrl, color, isMe }, resolved per viewer
+let myName = storeGet("gallery.name") || "";
+
+async function connect() {
+  if (window.GALLERY_FIREBASE && !window.claude?.use) return connectFirebase(window.GALLERY_FIREBASE);
+  if (!window.claude?.use) return LOCAL ? loadLocal(true) : readOnly("Comments aren’t switched on for this page yet.");
+  backend.live = true;
+  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+  backend.user = user;
+  if (!db) return readOnly("Comments aren’t available in this view.");
+  backend.db = db;
+  if (user) {
+    backend.me = await user.id();
+    const can = await user.can("data.write");
+    backend.writeKnown = can !== null;
+    if (can === false) readOnly(VIEW_ONLY);
+  }
+  db.collection("threads").onSnapshot((snap) => { live.threads = snap.docs.map((d) => ({ id: d.id, ...d.data() })); rebuild(); }, dbStopped);
+  db.collection("replies").onSnapshot((snap) => { live.replies = snap.docs.map((d) => ({ id: d.id, ...d.data() })); rebuild(); }, dbStopped);
+}
+function dbStopped(error) {
+  if (error?.code === "revoked") return readOnly("Comments are no longer available in this view.");
+  toast("Comments stopped updating. Reload the page to reconnect.");
+}
+
+// The public site: anyone with the link comments under the name they give.
+async function connectFirebase(config) {
+  backend.live = true;
+  backend.needsName = true;
+  updateHint();
+  try {
+    const [{ initializeApp }, rt] = await Promise.all([
+      import(`${FIREBASE_SDK}firebase-app.js`),
+      import(`${FIREBASE_SDK}firebase-database.js`),
+    ]);
+    const db = rt.getDatabase(initializeApp(config));
+    // Each project's comments live under its own root in the shared database.
+    backend.root = config.root ? `${config.root}/` : "";
+    backend.fb = { rt, db };
+    const stopped = (error) => { console.error(error); toast("Comments stopped updating. Reload the page to reconnect."); };
+    const rows = (snap) => Object.entries(snap.val() || {}).map(([id, v]) => ({ ...(v && typeof v === "object" ? v : {}), id }));
+    rt.onValue(rt.ref(db, `${backend.root}threads`), (snap) => { live.threads = rows(snap); rebuild(); }, stopped);
+    rt.onValue(rt.ref(db, `${backend.root}replies`), (snap) => { live.replies = rows(snap); rebuild(); }, stopped);
+  } catch (error) {
+    console.error(error);
+    readOnly("Comments couldn’t load. Check your connection and reload.");
+  }
+}
+function updateHint() {
+  const who = backend.needsName && myName ? ` · as <b>${esc(myName)}</b> <button class="link" id="changeName">change</button>` : "";
+  $("hint").innerHTML = `Click anywhere on a screen to leave a comment${who}`;
+  $("changeName")?.addEventListener("click", () => { myName = ""; storeSet("gallery.name", ""); updateHint(); });
+}
+
+// Threads and replies are separate documents so two people replying at once
+// never overwrite each other. Numbers follow the order comments were left.
+function rebuild() {
+  const byTime = (a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")) || String(a.id).localeCompare(String(b.id));
+  const replies = {};
+  for (const r of [...live.replies].sort(byTime)) (replies[r.thread] ||= []).push(r);
+  comments = [...live.threads].sort(byTime).map((t, i) => ({
+    id: t.id,
+    number: i + 1,
+    route: String(t.route || ""),
+    title: String(t.title || ""),
+    x: clamp01(t.x),
+    y: clamp01(t.y),
+    resolvedAt: t.resolvedAt || null,
+    author: t.author || null,
+    messages: [t, ...(replies[t.id] || [])].map((m) => ({
+      text: String(m.text || ""), at: m.createdAt, author: m.author || null, name: String(m.name || "").slice(0, 60),
+    })),
+  }));
+  refresh();
+  if (pop?.kind === "thread") updateThread();
+  resolvePeople();
+}
+async function resolvePeople() {
+  if (!backend.user) return;
+  const ids = [...new Set(comments.flatMap((c) => c.messages.map((m) => m.author)).filter(Boolean))];
+  if (!ids.length) return;
+  const found = await backend.user.profiles(ids);
+  let changed = false;
+  for (const id of ids) {
+    const p = found[id] || {};
+    const next = { name: p.name || "", avatarUrl: p.avatarUrl || "", color: safeColor(p.color), isMe: !!p.isMe };
+    if (JSON.stringify(next) !== JSON.stringify(people[id])) { people[id] = next; changed = true; }
+  }
+  if (changed) { renderPins(); if (pop?.kind === "thread") updateThread(); }
+}
+const nameOf = (id) => (people[id] ? people[id].name || (people[id].isMe ? "You" : "Someone") : "");
+// Who wrote a message: a typed name on the public site, an account on claude.ai.
+const whoOf = (m) => m.name || (m.author ? nameOf(m.author) : "");
+const colorOf = (m) => (m.name ? nameColor(m.name) : m.author ? people[m.author]?.color || "" : "");
+const faceOf = (m) => (m.author ? people[m.author]?.avatarUrl || "" : "");
+
+async function loadLocal(first) {
+  try {
+    const store = await api("/api/comments");
+    comments = (store.comments || []).map((c) => ({ ...c, author: null, messages: c.messages.map((m) => ({ ...m, author: null })) }));
+    refresh();
+    if (pop?.kind === "thread") updateThread();
+  } catch (error) {
+    if (!first) throw error;
+    toast(/JSON/.test(error.message) ? error.message : "Comments couldn’t load. Is the gallery server running?");
+  }
+}
+async function api(path, body) {
+  const res = await fetch(path, body === undefined ? undefined : {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+const nowISO = () => new Date().toISOString();
+async function createComment(d) {
+  if (backend.fb) {
+    const { rt, db } = backend.fb;
+    const ref = rt.push(rt.ref(db, `${backend.root}threads`));
+    justAdded = ref.key;
+    return rt.set(ref, {
+      route: d.route, title: d.title || "", group: d.group || "", x: d.x, y: d.y, text: d.text,
+      name: myName, createdAt: nowISO(), shotCapturedAt: d.shotCapturedAt || null,
+    });
+  }
+  if (!backend.live) {
+    const c = await api("/api/comments", d);
+    justAdded = c.id;
+    await loadLocal();
+    return;
+  }
+  const ref = backend.db.collection("threads").doc();
+  justAdded = ref.id;
+  await ref.set({
+    route: d.route, title: d.title || "", group: d.group || "", x: d.x, y: d.y, text: d.text,
+    author: backend.me, createdAt: nowISO(), resolvedAt: null, resolvedBy: null,
+    shotCapturedAt: d.shotCapturedAt || null,
+  });
+}
+async function replyTo(id, text) {
+  if (backend.fb) {
+    const { rt, db } = backend.fb;
+    return rt.set(rt.push(rt.ref(db, `${backend.root}replies`)), { thread: id, text, name: myName, createdAt: nowISO() });
+  }
+  if (!backend.live) { await api(`/api/comments/${encodeURIComponent(id)}/replies`, { text }); return loadLocal(); }
+  await backend.db.collection("replies").doc().set({ thread: id, text, author: backend.me, createdAt: nowISO() });
+}
+async function setResolved(id, resolved) {
+  if (backend.fb) {
+    const { rt, db } = backend.fb;
+    return rt.update(rt.ref(db, `${backend.root}threads/${id}`), { resolvedAt: resolved ? nowISO() : null, resolvedBy: resolved ? myName || null : null });
+  }
+  if (!backend.live) { await api(`/api/comments/${encodeURIComponent(id)}/resolve`, { resolved }); return loadLocal(); }
+  await backend.db.doc(`threads/${id}`).update({ resolvedAt: resolved ? nowISO() : null, resolvedBy: resolved ? backend.me : null });
+}
+function writeFailed(error) {
+  console.error(error);
+  // A viewer the platform said nothing about finds out on their first write.
+  if (backend.live && error?.code === "invalid_argument" && !backend.writeKnown) {
+    readOnly(VIEW_ONLY);
+    return toast("That wasn’t saved. This page is view-only for you.");
+  }
+  if (!backend.live) return toast(`Couldn’t save that. ${error?.message || "Is the gallery server running?"}`.trim());
+  toast("Couldn’t save that. Check your connection and try again.");
+}
+function readOnly(message) {
+  backend.canWrite = false;
+  document.body.classList.add("readonly");
+  setCommenting(false);
+  if (pop?.kind === "draft") closePop();
+  else if (pop) renderPop();
+  $("roNote").hidden = false;
+  $("roNote").title = message;
+  $("roNote").onclick = () => toast(message);
+}
+
+// ---------- Board
+
+async function start() {
+  try {
+    const res = await fetch(`shots/manifest.json?t=${Date.now()}`);
+    manifest = res.ok ? await res.json() : null;
+  } catch { manifest = null; }
+  render();
+  connect();
+}
+
+function when(iso) {
+  return new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+function ago(iso) {
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (!Number.isFinite(s)) return "";
+  if (s < 60) return "Just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+const openFor = (route) => comments.filter((c) => !c.resolvedAt && c.route === route);
+
+function render() {
+  closePop();
+  const board = $("board"), filters = $("filters");
+  board.innerHTML = "";
+  filters.innerHTML = "";
+  shots = {};
+  flat = [];
+  if (!manifest || !manifest.groups.some((g) => g.shots.length)) {
+    $("meta").textContent = "No screenshots yet";
+    board.innerHTML = `<div class="empty"><h2>No screenshots yet</h2><p>Screens show up here once they’ve been captured from the app.</p></div>`;
+    return;
+  }
+  const groups = manifest.groups.filter((g) => g.shots.length);
+  for (const g of groups) for (const s of g.shots) shots[s.route] = { ...s, group: g.name };
+  if (filter !== "All" && !groups.some((g) => g.name === filter)) filter = "All";
+
+  for (const name of ["All", ...groups.map((g) => g.name)]) {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.setAttribute("aria-pressed", String(name === filter));
+    b.onclick = () => { filter = name; storeSet("gallery.filter", name); render(); };
+    filters.appendChild(b);
+  }
+
+  for (const group of groups) {
+    if (filter !== "All" && group.name !== filter) continue;
+    const section = document.createElement("section");
+    section.innerHTML = `<h2>${esc(group.name)}<span>${group.shots.length} ${group.shots.length === 1 ? "screen" : "screens"}</span></h2>`;
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    group.shots.forEach((shot, i) => {
+      flat.push(shots[shot.route]);
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      tile.dataset.route = shot.route;
+      tile.innerHTML = `
+        <div class="frame" role="button" tabindex="0" data-route="${esc(shot.route)}" aria-label="${esc(group.name)}, ${esc(shot.title)}">
+          <img class="shot" loading="lazy" alt="" src="${esc(shot.file)}?v=${encodeURIComponent(shot.capturedAt)}">
+          <div class="pins"></div>
+        </div>
+        <div class="label"><b>${String(i + 1).padStart(2, "0")}</b><span>${esc(shot.title)}</span><i class="count" hidden></i></div>
+        <span class="route">${esc(shot.route)}</span>`;
+      grid.appendChild(tile);
+    });
+    section.appendChild(grid);
+    board.appendChild(section);
+  }
+  refresh();
+}
+
+// Pins, per-screen counts and the header line, after any comment change.
+function refresh() {
+  renderPins();
+  const open = comments.filter((c) => !c.resolvedAt && shots[c.route]);
+  document.querySelectorAll(".tile").forEach((tile) => {
+    const n = open.filter((c) => c.route === tile.dataset.route).length;
+    const count = tile.querySelector(".count");
+    count.hidden = !n;
+    count.innerHTML = n ? `${ICON.bubble}${n}` : "";
+    count.title = n ? `${n} open ${n === 1 ? "comment" : "comments"}` : "";
+  });
+  if (!manifest) return;
+  $("meta").textContent = [
+    `${Object.keys(shots).length} screens`,
+    open.length ? `${open.length} ${open.length === 1 ? "comment" : "comments"}` : null,
+    manifest.device,
+    `captured ${when(manifest.capturedAt)}`,
+  ].filter(Boolean).join(" · ");
+}
+
+function renderPins() {
+  document.querySelectorAll(".frame[data-route]").forEach((frame) => {
+    let html = openFor(frame.dataset.route).map(pinHTML).join("");
+    if (pop?.kind === "draft" && pop.frame === frame)
+      html += `<span class="pin draft" style="--x:${pop.x};--y:${pop.y}"><span class="num"></span></span>`;
+    frame.querySelector(".pins").innerHTML = html;
+  });
+  place();
+}
+function pinHTML(c) {
+  const first = c.messages[0] || { text: "" };
+  const text = first.text;
+  const who = whoOf(first);
+  const color = colorOf(first);
+  const replies = c.messages.length - 1;
+  const active = pop?.kind === "thread" && pop.id === c.id;
+  return `<button class="pin${active ? " active" : ""}${c.id === justAdded ? " new" : ""}" data-id="${esc(c.id)}" style="--x:${c.x};--y:${c.y}${color ? `;--c:${color}` : ""}" aria-label="Comment ${c.number}${who ? ` by ${esc(who)}` : ""}: ${esc(text)}">
+    <span class="num">${c.number}</span>
+    <span class="peek">${who ? `<b>${esc(who)}</b>` : ""}<span class="t">${esc(text)}</span>${replies ? `<small>${replies} ${replies === 1 ? "reply" : "replies"}</small>` : ""}</span>
+  </button>`;
+}
+
+// ---------- Commenting
+
+function setCommenting(on) {
+  if (on && !backend.canWrite) return;
+  if (commenting === on) return;
+  commenting = on;
+  document.body.classList.toggle("commenting", on);
+  if (!on && pop?.kind === "draft" && !draftText()) closePop();
+}
+function startDraft(frame, e) {
+  if (!backend.canWrite) return;
+  const r = frame.getBoundingClientRect();
+  const x = e ? clamp01((e.clientX - r.left) / r.width) : 0.5;
+  const y = e ? clamp01((e.clientY - r.top) / r.height) : 0.5;
+  pop = { kind: "draft", route: frame.dataset.route, x: +x.toFixed(4), y: +y.toFixed(4), frame };
+  renderPins();
+  renderPop();
+}
+function openThread(id) {
+  if (pop?.kind === "draft" && draftText()) return nudge();
+  pop = pop?.kind === "thread" && pop.id === id ? null : { kind: "thread", id };
+  renderPins();
+  renderPop();
+}
+function closePop() {
+  if (!pop) return;
+  pop = null;
+  renderPop();
+  renderPins();
+}
+function draftText() {
+  return pop?.kind === "draft" ? ($("pop").querySelector("textarea")?.value.trim() || "") : "";
+}
+function nudge() {
+  const el = $("pop");
+  el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "translateX(0)" }], { duration: 240, easing: "ease-out" });
+  el.querySelector("textarea")?.focus();
+}
+
+// On the public site the first comment also asks for a name, remembered after.
+const composer = (label) =>
+  `${backend.needsName && !myName ? `<input class="name" id="commentName" maxlength="60" placeholder="Your name" aria-label="Your name" autocomplete="name">` : ""}<div class="composer"><textarea id="commentText" rows="1" maxlength="4000" placeholder="${label}" aria-label="${label}"></textarea><button class="send" disabled aria-label="Post" title="Post (Enter)">${ICON.send}</button></div>`;
+function messageHTML(m) {
+  const who = whoOf(m), face = faceOf(m);
+  const mark = face
+    ? `<img class="av" src="${esc(face)}" alt="">`
+    : m.name ? `<span class="av init" style="background:${colorOf(m)}">${esc([...m.name][0].toUpperCase())}</span>` : "";
+  return `<div class="msg"><div class="msg-head">${mark}${who ? `<b>${esc(who)}</b>` : ""}<time datetime="${esc(m.at)}">${ago(m.at)}</time></div><p>${esc(m.text)}</p></div>`;
+}
+
+function renderPop() {
+  const el = $("pop");
+  const c = pop?.kind === "thread" ? comments.find((x) => x.id === pop.id) : null;
+  if (!pop || (pop.kind === "thread" && !c)) {
+    pop = null;
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  el.className = `pop ${pop.kind}`;
+  el.setAttribute("aria-label", c ? `Comment ${c.number}` : "New comment");
+  el.innerHTML = c
+    ? `<div class="pop-head">
+         <span class="pop-title"><b>#${c.number}</b>${esc(c.title || c.route)}</span>
+         ${backend.canWrite ? `<button class="icon resolve" data-act="resolve" title="Resolve" aria-label="Resolve">${ICON.check}</button>` : ""}
+         <button class="icon" data-act="close" title="Close" aria-label="Close">${ICON.close}</button>
+       </div>
+       <div class="msgs">${c.messages.map(messageHTML).join("")}</div>
+       ${backend.canWrite ? composer("Reply") : ""}`
+    : composer("Add a comment");
+  el.hidden = false;
+
+  if (c) {
+    el.querySelector('[data-act="resolve"]')?.addEventListener("click", () => resolve(c.id, true));
+    el.querySelector('[data-act="close"]').addEventListener("click", closePop);
+    const msgs = el.querySelector(".msgs");
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  const ta = el.querySelector("textarea"), send = el.querySelector(".send");
+  if (ta) {
+    ta.addEventListener("input", () => {
+      ta.style.height = "auto";
+      ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+      send.disabled = !ta.value.trim();
+      place();
+    });
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(); }
+    });
+    send.addEventListener("click", submit);
+  }
+  const nameInput = el.querySelector("#commentName");
+  nameInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); ta.focus(); }
+  });
+  place();
+  (nameInput || ta)?.focus({ preventScroll: true });
+}
+// A thread changed while open (a reply arrived, a name resolved): refresh its
+// messages without touching the reply being typed.
+function updateThread() {
+  const c = comments.find((x) => x.id === pop?.id);
+  if (!c || c.resolvedAt) return closePop();
+  const msgs = $("pop").querySelector(".msgs");
+  if (!msgs) return;
+  const atEnd = msgs.scrollTop + msgs.clientHeight >= msgs.scrollHeight - 4;
+  msgs.innerHTML = c.messages.map(messageHTML).join("");
+  if (atEnd) msgs.scrollTop = msgs.scrollHeight;
+  place();
+}
+
+async function submit() {
+  const el = $("pop"), ta = el.querySelector("textarea"), send = el.querySelector(".send");
+  const text = ta?.value.trim();
+  if (!pop || !text || send.dataset.busy) return;
+  const nameInput = el.querySelector("#commentName");
+  if (nameInput) {
+    const name = nameInput.value.trim().slice(0, 60);
+    if (!name) {
+      nameInput.focus();
+      nameInput.animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "translateX(0)" }], { duration: 240, easing: "ease-out" });
+      return;
+    }
+    myName = name;
+    storeSet("gallery.name", name);
+    updateHint();
+    nameInput.remove();
+    place();
+  }
+  send.dataset.busy = "1";
+  send.disabled = true;
+  const current = pop;
+  try {
+    if (current.kind === "draft") {
+      const shot = shots[current.route] || {};
+      await createComment({
+        route: current.route, title: shot.title, group: shot.group,
+        x: current.x, y: current.y, text, shotCapturedAt: shot.capturedAt,
+      });
+      if (pop === current) pop = null;
+      renderPop();
+      refresh();
+    } else {
+      await replyTo(current.id, text);
+      if (pop === current) {
+        ta.value = "";
+        ta.style.height = "";
+        delete send.dataset.busy;
+        updateThread();
+      }
+    }
+    setTimeout(() => { justAdded = null; }, 400);
+  } catch (error) {
+    writeFailed(error);
+    delete send.dataset.busy;
+    send.disabled = !backend.canWrite;
+  }
+}
+
+async function resolve(id, resolved) {
+  try {
+    await setResolved(id, resolved);
+    const c = comments.find((x) => x.id === id);
+    if (resolved && pop?.kind === "thread" && pop.id === id) closePop();
+    if (!resolved) { justAdded = id; setTimeout(() => { justAdded = null; }, 400); }
+    refresh();
+    if (resolved) toast(`Comment #${c?.number ?? ""} resolved`, "Undo", () => resolve(id, false));
+  } catch (error) {
+    writeFailed(error);
+  }
+}
+
+// The popover sits beside its pin and follows it as the page scrolls.
+function anchor() {
+  if (!pop) return null;
+  if (pop.kind === "draft") return pop.frame.querySelector(".pin.draft");
+  const pins = [...document.querySelectorAll(`.pin[data-id="${CSS.escape(pop.id)}"]`)];
+  return pins.find((p) => !!p.closest(".lightbox") === openIndex >= 0) || null;
+}
+function place() {
+  const el = $("pop");
+  if (!pop || el.hidden) return;
+  const a = anchor();
+  if (!a) { el.style.visibility = "hidden"; return; }
+  const r = a.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+  let left = r.right + 10;
+  if (left + w > innerWidth - 12) left = r.left - 10 - w;
+  left = Math.max(12, left);
+  const top = Math.max(12, Math.min(r.top - 6, innerHeight - 12 - h));
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
+  const floor = openIndex >= 0 ? 0 : $("top").getBoundingClientRect().bottom;
+  el.style.visibility = r.bottom > floor && r.top < innerHeight ? "" : "hidden";
+}
+addEventListener("scroll", place, { passive: true });
+addEventListener("resize", place);
+
+// Hover previews open to whichever side has room.
+document.addEventListener("mouseover", (e) => {
+  const pin = e.target.closest?.(".pin[data-id]");
+  if (pin) pin.classList.toggle("flip", pin.getBoundingClientRect().right + 260 > innerWidth);
+});
+
+// ---------- Toast
+
+let toastTimer;
+function toast(message, action, onAction) {
+  const el = $("toast");
+  el.className = action ? "toast" : "toast plain";
+  el.innerHTML = `<span>${esc(message)}</span>${action ? `<button>${esc(action)}</button>` : ""}`;
+  if (action) el.querySelector("button").onclick = () => { el.hidden = true; onAction(); };
+  el.hidden = true;
+  void el.offsetWidth;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 8000);
+}
+
+// ---------- Lightbox
+
+function openShot(i) {
+  if (!flat.length) return;
+  closePop();
+  openIndex = ((i % flat.length) + flat.length) % flat.length;
+  const s = flat[openIndex];
+  $("big").src = `${s.file}?v=${encodeURIComponent(s.capturedAt)}`;
+  $("big").alt = `${s.group}, ${s.title}`;
+  $("bigFrame").dataset.route = s.route;
+  $("bigFrame").setAttribute("aria-label", `${s.group}, ${s.title}`);
+  $("bigTitle").textContent = s.title;
+  $("bigMeta").textContent = `${s.group} · ${openIndex + 1} of ${flat.length} · ${s.route}`;
+  $("lightbox").inert = false;
+  $("lightbox").classList.add("open");
+  renderPins();
+}
+function closeShot() {
+  closePop();
+  openIndex = -1;
+  $("lightbox").classList.remove("open");
+  $("lightbox").inert = true;
+  $("bigFrame").dataset.route = "";
+  renderPins();
+}
+$("prev").onclick = () => openShot(openIndex - 1);
+$("next").onclick = () => openShot(openIndex + 1);
+$("close").onclick = closeShot;
+document.querySelectorAll("[data-mode]").forEach((b) => {
+  b.onclick = () => setCommenting(b.dataset.mode === "on");
+});
+
+// Clicks: a pin opens its thread; a screen takes a comment while commenting,
+// otherwise opens large. With a popover open, a click elsewhere closes it first.
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.closest("#pop, #toast")) return;
+  const pin = t.closest(".pin[data-id]");
+  if (pin) return openThread(pin.dataset.id);
+  const frame = t.closest(".frame");
+  if (pop) {
+    if (pop.kind === "draft" && draftText()) { if (!t.closest("button")) nudge(); return; }
+    if (pop.kind === "draft" && frame && commenting) return startDraft(frame, e);
+    return closePop();
+  }
+  if (frame) return activate(frame, e);
+  if (t === $("lightbox")) closeShot();
+});
+function activate(frame, e) {
+  if (commenting) startDraft(frame, e);
+  else if (!frame.classList.contains("big")) openShot(flat.findIndex((s) => s.route === frame.dataset.route));
+}
+
+// Keys: C comments, Esc steps back (popover, then commenting, then the lightbox).
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (pop) return closePop();
+    if (commenting) return setCommenting(false);
+    if (openIndex >= 0) closeShot();
+    return;
+  }
+  if (e.target.closest?.("textarea, input, [contenteditable]") || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "c" || e.key === "C") return setCommenting(true);
+  if (openIndex >= 0 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) return openShot(openIndex + (e.key === "ArrowLeft" ? -1 : 1));
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList?.contains("frame")) {
+    e.preventDefault();
+    activate(e.target);
+  }
+});
+
+start();
+</script>
+
+</body>
+</html>

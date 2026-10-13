@@ -1,0 +1,139 @@
+{
+  "capturedAt": "2026-10-13T22:00:50",
+  "device": "iPhone 17 Pro",
+  "groups": [
+    {
+      "name": "Home",
+      "shots": [
+        {
+          "route": "home",
+          "title": "Home",
+          "file": "shots/home.webp",
+          "capturedAt": "2026-10-13T21:59:45"
+        },
+        {
+          "route": "home.rows",
+          "title": "Home \u00b7 Trending & collection",
+          "file": "shots/home.rows.webp",
+          "capturedAt": "2026-10-13T21:59:48"
+        },
+        {
+          "route": "home.curve",
+          "title": "Home \u00b7 Curve variant",
+          "file": "shots/home.curve.webp",
+          "capturedAt": "2026-10-13T21:59:52"
+        }
+      ]
+    },
+    {
+      "name": "Scan",
+      "shots": [
+        {
+          "route": "scan",
+          "title": "Scan",
+          "file": "shots/scan.webp",
+          "capturedAt": "2026-10-13T21:59:55"
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "shots": [
+        {
+          "route": "card.scan",
+          "title": "Scan result",
+          "file": "shots/card.scan.webp",
+          "capturedAt": "2026-10-13T21:59:59"
+        },
+        {
+          "route": "card.scan.market",
+          "title": "Scan result \u00b7 Market",
+          "file": "shots/card.scan.market.webp",
+          "capturedAt": "2026-10-13T22:00:04"
+        },
+        {
+          "route": "card.scan.condition",
+          "title": "Scan result \u00b7 Condition & sales",
+          "file": "shots/card.scan.condition.webp",
+          "capturedAt": "2026-10-13T22:00:08"
+        },
+        {
+          "route": "card.scan.grade",
+          "title": "Scan result \u00b7 Grade & set",
+          "file": "shots/card.scan.grade.webp",
+          "capturedAt": "2026-10-13T22:00:12"
+        },
+        {
+          "route": "card.page",
+          "title": "Card page",
+          "file": "shots/card.page.webp",
+          "capturedAt": "2026-10-13T22:00:16"
+        },
+        {
+          "route": "card.page.details",
+          "title": "Card page \u00b7 Market & details",
+          "file": "shots/card.page.details.webp",
+          "capturedAt": "2026-10-13T22:00:20"
+        }
+      ]
+    },
+    {
+      "name": "Discover",
+      "shots": [
+        {
+          "route": "discover",
+          "title": "Discover",
+          "file": "shots/discover.webp",
+          "capturedAt": "2026-10-13T22:00:24"
+        },
+        {
+          "route": "discover.collections",
+          "title": "Discover \u00b7 Collections",
+          "file": "shots/discover.collections.webp",
+          "capturedAt": "2026-10-13T22:00:27"
+        },
+        {
+          "route": "discover.sets",
+          "title": "Collection \u00b7 Sets",
+          "file": "shots/discover.sets.webp",
+          "capturedAt": "2026-10-13T22:00:31"
+        },
+        {
+          "route": "discover.showcase",
+          "title": "Set \u00b7 Showcase",
+          "file": "shots/discover.showcase.webp",
+          "capturedAt": "2026-10-13T22:00:35"
+        }
+      ]
+    },
+    {
+      "name": "Collection",
+      "shots": [
+        {
+          "route": "collection",
+          "title": "Collection",
+          "file": "shots/collection.webp",
+          "capturedAt": "2026-10-13T22:00:39"
+        },
+        {
+          "route": "collection.more",
+          "title": "Collection \u00b7 More cards",
+          "file": "shots/collection.more.webp",
+          "capturedAt": "2026-10-13T22:00:43"
+        },
+        {
+          "route": "collection.wishlist",
+          "title": "Wishlist",
+          "file": "shots/collection.wishlist.webp",
+          "capturedAt": "2026-10-13T22:00:46"
+        },
+        {
+          "route": "collection.history",
+          "title": "History",
+          "file": "shots/collection.history.webp",
+          "capturedAt": "2026-10-13T22:00:50"
+        }
+      ]
+    }
+  ]
+}
